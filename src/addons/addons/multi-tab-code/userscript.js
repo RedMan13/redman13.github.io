@@ -90,7 +90,7 @@ export default async function ({ addon, msg, console }) {
                           ${localVariables.map(v => v.toXML(true)).join()}
                         </variables>
                         ${workspaceComments.map(c => c.toXML()).join()}
-                        ${tabs[selectedTab].map(script => vm.editingTarget.blocks.blockToXML(script, this.editingTarget.comments))}
+                        ${tabs[selectedTab].scripts.map(script => vm.editingTarget.blocks.blockToXML(script, this.editingTarget.comments))}
                         ${otherBlocks}
                       </xml>`;
 
