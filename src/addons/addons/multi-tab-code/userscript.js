@@ -102,7 +102,14 @@ export default async function ({ addon, msg, console }) {
     if (e.type === 'comment_delete' && tabTarget.comments[e.commentId]?.tab !== selectedTab) return;
     // do not delete blocks from other tabs, the main sprite must be a pool of all tabs
     if (e.type === 'delete' && !scriptsHasBlock(tabs[selectedTab].scripts, e.blockId)) return;
+    if (e.type === 'create')
+      tabs[selectedTab].scripts.push(e.blockId);
+    if (e.type === 'delete') {
+      const idx = tabs[selectedTab].scripts.indexOf(e.blockId);
+      tabs[selectedTab].scripts.splice(idx, 1);
+    }
     ogBlockListener(e);
+
     if (!e.isOutside) {
       switch (e.type) {
       case 'endDrag': 
