@@ -5,8 +5,6 @@ export default async function ({ addon, msg, console }) {
   let hoveredTab = -1;
   let dragging = false;
   const tabs = [];
-  const synchQueue = [];
-  let queueTab = -1;
   window.tabs = tabs;
   let tabTarget = null;
   const commentId = '// multi-tab configuration entry\n';
@@ -71,10 +69,7 @@ export default async function ({ addon, msg, console }) {
     let otherBlocks = '';
     for (const script of vm.editingTarget.blocks._scripts) {
       if (!tabs.some(tab => tab.scripts.includes(script))) {
-        if (synchQueue.includes(script) && queueTab !== selectedTab) continue;
         otherBlocks += this.editingTarget.blocks.blockToXML(script, this.editingTarget.comments);
-        if (!synchQueue.includes(script)) synchQueue.push(script);
-        queueTab = selectedTab;
       }
     }
 
@@ -502,7 +497,7 @@ export default async function ({ addon, msg, console }) {
       .filter(tab => tab.scripts.length > 0)
       .map((tab, idx) => ({
         name: tab.name,
-        scripts: tab.scripts.concat(queueTab === idx ? synchQueue : []),
+        scripts: tab.scripts,
         selected: selectedTab === idx,
         comments: Object.values(tabTarget.comments)
           .filter(c => !c.text.startsWith(commentId) && c.tab == idx)
@@ -543,8 +538,6 @@ export default async function ({ addon, msg, console }) {
       console.warn('Couldnt read the serialized tabs', err);
       addTab(true, null, vm.editingTarget.blocks._scripts);
     }
-    // queue may have filled up with requests while we where loading
-    synchQueue.splice(0, synchQueue.length);
   });
 
   const keysPressed = {};
