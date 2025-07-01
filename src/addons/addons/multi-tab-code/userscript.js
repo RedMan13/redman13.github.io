@@ -437,8 +437,10 @@ export default async function ({ addon, msg, console }) {
     if (!tabs[selectedTab]) selectedTab--;
     const shouldntDelete = addon.settings.get('shouldDelete');
     for (const script of tab.scripts) {
-      if (shouldntDelete == 'true')
+      if (shouldntDelete == 'true') {
         tabs[selectedTab].scripts.push(script);
+        continue;
+      }
       tabTarget.blocks.deleteBlock(script);
     }
     // offset indecies
