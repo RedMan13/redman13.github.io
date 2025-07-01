@@ -526,7 +526,7 @@ export default async function ({ addon, msg, console }) {
     try {
       const savedTabs = loadTabs();
       if (!savedTabs?.length) throw new Error('No saved tabs');
-      const scripts = tabTarget.blocks._scripts;
+      const scripts = [...tabTarget.blocks._scripts];
       for (const tabIdx in savedTabs) {
         const tab = savedTabs[tabIdx];
         for (const cid of tab.comments)
