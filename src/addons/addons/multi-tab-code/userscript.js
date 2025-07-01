@@ -70,7 +70,7 @@ export default async function ({ addon, msg, console }) {
     // ensure that all scripts appear to belong to some tab
     let otherBlocks = '';
     for (const script of vm.editingTarget.blocks._scripts) {
-      if (!tabs.some(tab => tab.blocks._scripts.includes(script))) {
+      if (!tabs.some(tab => tab.scripts.includes(script))) {
         if (synchQueue.includes(script) && queueTab !== selectedTab) continue;
         otherBlocks += this.editingTarget.blocks.blockToXML(script, this.editingTarget.comments);
         if (!synchQueue.includes(script)) synchQueue.push(script);
@@ -90,7 +90,7 @@ export default async function ({ addon, msg, console }) {
                           ${localVariables.map(v => v.toXML(true)).join()}
                         </variables>
                         ${workspaceComments.map(c => c.toXML()).join()}
-                        ${tabs[selectedTab].blocks.toXML(this.editingTarget.comments)}
+                        ${tabs[selectedTab].map(script => vm.editingTarget.blocks.blockToXML(script, this.editingTarget.comments))}
                         ${otherBlocks}
                       </xml>`;
 
@@ -101,9 +101,7 @@ export default async function ({ addon, msg, console }) {
     // skip operations on comments that arnt real
     if (e.type === 'comment_delete' && tabTarget.comments[e.commentId]?.tab !== selectedTab) return;
     // do not delete blocks from other tabs, the main sprite must be a pool of all tabs
-    if (e.type === 'delete' && !tabs[selectedTab].blocks._blocks[e.blockId]) return;
-    if (selectedTab !== -1 && e.type !== 'ui' && !e.varId)
-      tabs[selectedTab].blocks.blocklyListen(e);
+    if (e.type === 'delete' && !scriptsHasBlock(tabs[selectedTab].scripts, e.blockId)) return;
     ogBlockListener(e);
     if (!e.isOutside) {
       switch (e.type) {
@@ -158,8 +156,8 @@ export default async function ({ addon, msg, console }) {
       if (target === this._editingTarget) {
         const blockForThread = thread.blockGlowInFrame;
         if (thread.requestScriptGlowInFrame || thread.stackClick) {
-          let script = tabs[selectedTab].blocks.getTopLevelScript(blockForThread);
-          if (!script) {
+          let script = this._editingTarget.blocks.getTopLevelScript(blockForThread);
+          if (!tabs[selectedTab].scripts.includes(script)) {
             // Attempt to find in flyout blocks.
             script = this.flyoutBlocks.getTopLevelScript(
               blockForThread
@@ -200,7 +198,6 @@ export default async function ({ addon, msg, console }) {
         const blockWithComment = this.blocks.getBlock(blockId);
         if (blockWithComment) {
           blockWithComment.comment = id;
-          tabs[selectedTab].blocks._blocks[blockId].comment = id;
         } else {
           log.warn(`Could not find block with id ${blockId} associated with commentId: ${id}`);
         }
@@ -230,11 +227,6 @@ export default async function ({ addon, msg, console }) {
       this.mutation = blocks.XMLToMutation(dom);
       // event isnt ever fired for whatever reason????????
       blocks._blocks[this.blockId].mutation = this.mutation;
-      for (const tab of tabs) {
-        const block = tab.blocks._blocks[this.blockId];
-        if (block)
-          block.mutation = this.mutation;
-      }
     }
   }
   // Make procedures get sourced from the target, rather then the workspace
@@ -354,6 +346,10 @@ export default async function ({ addon, msg, console }) {
   addButton.classList.add('tab-adder-button');
   tabScroller.appendChild(addButton);
 
+  function scriptsHasBlock(scripts, block) {
+    const top = vm.editingTarget.blocks.getTopLevelScript(block);
+    return scripts.includes(top);
+  }
   function copyScript(id, blocks) {
     let block;
     do {
@@ -388,12 +384,9 @@ export default async function ({ addon, msg, console }) {
     vm.runtime._updateGlows();
   }
   function addTab(enabled, name, scripts) {
-    const meta = { name: name, element: null, idx: -1, blocks: new Blocks(vm.runtime) };
-    if (scripts) {
-      meta.blocks._scripts = [...scripts];
-      for (const scriptId of scripts)
-        copyScript(scriptId, meta.blocks);
-    }
+    const meta = { name: name, element: null, idx: -1, scripts: [] };
+    if (scripts)
+      meta.scripts = [...scripts];
     meta.idx = tabs.push(meta) -1;
     meta.name ??= `Tab ${meta.idx +1}`;
     const tabOuter = document.createElement('div');
@@ -441,9 +434,9 @@ export default async function ({ addon, msg, console }) {
     tabs.splice(idx, 1);
     if (!tabs[selectedTab]) selectedTab--;
     const shouldntDelete = addon.settings.get('shouldDelete');
-    for (const script of tab.blocks._scripts) {
+    for (const script of tab.scripts) {
       if (shouldntDelete == 'true')
-        copyScript(script, tabs[selectedTab].blocks);
+        tabs[selectedTab].scripts.push(script);
       tabTarget.blocks.deleteBlock(script);
     }
     // offset indecies
@@ -499,10 +492,10 @@ export default async function ({ addon, msg, console }) {
   }
   function saveTabs() {
     const serial = tabs
-      .filter(tab => tab.blocks._scripts.length > 0)
+      .filter(tab => tab.scripts.length > 0)
       .map((tab, idx) => ({
         name: tab.name,
-        scripts: tab.blocks._scripts.concat(queueTab === idx ? synchQueue : []),
+        scripts: tab.scripts.concat(queueTab === idx ? synchQueue : []),
         selected: selectedTab === idx,
         comments: Object.values(tabTarget.comments)
           .filter(c => !c.text.startsWith(commentId) && c.tab == idx)
@@ -538,7 +531,7 @@ export default async function ({ addon, msg, console }) {
         addTab(tab.selected, tab.name, tab.scripts);
       }
       for (const script of scripts)
-        copyScript(script, tabs[selectedTab].blocks);
+        tabs[selectedTab].scripts.push(script);
     } catch (err) {
       console.warn('Couldnt read the serialized tabs', err);
       addTab(true, null, vm.editingTarget.blocks._scripts);
