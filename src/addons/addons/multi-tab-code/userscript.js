@@ -80,7 +80,6 @@ export default async function ({ addon, msg, console }) {
                         </variables>
                         ${workspaceComments.map(c => c.toXML()).join()}
                         ${tabs[selectedTab].scripts.map(script => vm.editingTarget.blocks.blockToXML(script, this.editingTarget.comments))}
-                        ${otherBlocks}
                       </xml>`;
 
     this.emit('workspaceUpdate', {xml: xmlString});
