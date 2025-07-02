@@ -92,6 +92,12 @@ export default async function ({ addon, msg, console }) {
     if (e.type === 'delete' && !scriptsHasBlock(tabs[selectedTab].scripts, e.blockId)) return;
     if (e.type === 'create' && !tabs[selectedTab].scripts.includes(e.blockId))
       tabs[selectedTab].scripts.push(e.blockId);
+    if (e.type === 'move' && !e.newParent)
+      tabs[selectedTab].scripts.push(e.blockId);
+    if (e.type === 'move' && e.newParent) {
+      const idx = tabs[selectedTab].scripts.indexOf(e.blockId);
+      tabs[selectedTab].scripts.splice(idx, 1);
+    }
     if (e.type === 'delete') {
       const idx = tabs[selectedTab].scripts.indexOf(e.blockId);
       tabs[selectedTab].scripts.splice(idx, 1);
