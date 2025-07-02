@@ -67,14 +67,6 @@ export default async function ({ addon, msg, console }) {
       Object.create(null) :
       Object.assign({}, this.editingTarget.variables);
 
-    // ensure that all scripts appear to belong to some tab
-    let otherBlocks = '';
-    for (const script of vm.editingTarget.blocks._scripts) {
-      if (!tabs.some(tab => tab.scripts.includes(script))) {
-        otherBlocks += this.editingTarget.blocks.blockToXML(script, this.editingTarget.comments);
-      }
-    }
-
     const globalVariables = Object.keys(globalVarMap).map(k => globalVarMap[k]);
     const localVariables = Object.keys(localVarMap).map(k => localVarMap[k]);
     const workspaceComments = Object.keys(this.editingTarget.comments)
