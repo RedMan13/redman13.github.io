@@ -536,6 +536,7 @@ export default async function ({ addon, msg, console }) {
       }
       for (const script of scripts)
         tabs[selectedTab].scripts.push(script);
+      vm.emitWorkspaceUpdate();
     } catch (err) {
       console.warn('Couldnt read the serialized tabs', err);
       addTab(true, null, vm.editingTarget.blocks._scripts);
