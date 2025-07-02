@@ -30,7 +30,9 @@ export default async function ({ addon, msg, console }) {
   const { Blocks, Variable, RenderedTarget, Comment } = vm.exports;
   const ogEmitUpdate = vm.emitWorkspaceUpdate;
   vm.emitWorkspaceUpdate = function() {
-    if (!tabs[selectedTab]) return ogEmitUpdate.call(this, []);
+    if (!tabs[selectedTab]) return `<xml xmlns="http://www.w3.org/1999/xhtml">
+                                      <variables></variables>
+                                    </xml>`;
     // Create a list of broadcast message Ids according to the stage variables
     const stageVariables = this.runtime.getTargetForStage().variables;
     let messageIds = [];
