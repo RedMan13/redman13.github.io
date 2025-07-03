@@ -113,17 +113,7 @@ export default async function ({ addon, msg, console }) {
         for (const block of blocks) {
           const oldId = block.id;
           const newId = block.id = uid();
-          // replace all instances of the old id with the new one
-          blocks.forEach(block => {
-            if (block.next === oldId) block.next = newId;
-            if (block.parent === oldId) block.parent = newId;
-            for (const name in block.inputs) {
-              const input = block.inputs[name];
-              if (input.block === oldId) input.block = newId;
-              if (input.shadow === oldId) input.shadow = newId;
-            }
-          });
-          tabs[hoveredTab].blocks.createBlock(block);
+          if (block.topLevel) tabs[hoveredTab].scripts.push(block.id);
         }
       }
     }
