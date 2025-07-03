@@ -512,8 +512,10 @@ export default async function ({ addon, msg, console }) {
         }
         for (const script of scripts)
           tabs[selectedTab].scripts.push(script);
+        return;
       }
     }
+    throw new Error('No tab comment could be found');
   }
   function saveTabs() {
     const serial = tabs
@@ -549,9 +551,8 @@ export default async function ({ addon, msg, console }) {
     tabTarget = vm.editingTarget;
     try {
       loadTabs();
-      vm.emitWorkspaceUpdate();
     } catch (err) {
-      if (err.message !== 'No saved tabs')
+      if (err.message !== 'No saved tabs' && err.message !== 'No tab comment could be found')
         console.warn('Couldnt read the serialized tabs', err);
       addTab(true, null, vm.editingTarget.blocks._scripts);
     }
