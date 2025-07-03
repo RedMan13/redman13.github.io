@@ -510,7 +510,8 @@ export default async function ({ addon, msg, console }) {
         tabs[selectedTab].scripts.push(script);
       vm.emitWorkspaceUpdate();
     } catch (err) {
-      console.warn('Couldnt read the serialized tabs', err);
+      if (err.message !== 'No saved tabs')
+        console.warn('Couldnt read the serialized tabs', err);
       addTab(true, null, vm.editingTarget.blocks._scripts);
     }
   });
