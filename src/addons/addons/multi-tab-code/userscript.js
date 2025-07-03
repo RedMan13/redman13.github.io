@@ -551,7 +551,7 @@ export default async function ({ addon, msg, console }) {
     for (const comment of Object.values(tabTarget.comments))
       if (comment.text.startsWith(commentId))
         return comment.text = commentId + JSON.stringify(serial);
-    tabTarget.createComment(null, null, commentId + JSON.stringify(serial), 10,10, -100000,-100000, true);
+    tabTarget.createComment(undefined, undefined, commentId + JSON.stringify(serial), 10,10, -100000,-100000, true);
   }
   function hasCommentChanged() {
     for (const comment of Object.values(tabTarget.comments)) {
