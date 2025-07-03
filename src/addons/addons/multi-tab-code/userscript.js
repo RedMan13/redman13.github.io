@@ -12,6 +12,7 @@ export default async function ({ addon, msg, console }) {
   let scrollSelected = false;
   let selectStartX = 0;
   let selectStartScroll = 0;
+  let lastLoaded = '';
   const soup_ = '!#%()*+,-./:;=?@[]^_`{|}~ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
   function uid() {
     const length = 20;
@@ -478,6 +479,7 @@ export default async function ({ addon, msg, console }) {
   function loadTabs() {
     for (const comment of Object.values(tabTarget.comments)) {
       if (comment.text.startsWith(commentId)) {
+        lastLoaded = comment.text;
         const savedTabs = JSON.parse(comment.text.slice(commentId.length));
         if (!savedTabs?.length) throw new Error('No saved tabs');
         const scripts = [...tabTarget.blocks._scripts];
@@ -551,11 +553,17 @@ export default async function ({ addon, msg, console }) {
         return comment.text = commentId + JSON.stringify(serial);
     tabTarget.createComment(null, null, commentId + JSON.stringify(serial), 10,10, -100000,-100000, true);
   }
+  function hasCommentChanged() {
+    for (const comment of Object.values(tabTarget.comments)) {
+      if (comment.text === lastLoaded) return false;
+    }
+    return true;
+  }
 
   vm.on('targetsUpdate', () => {
     // if editingTarget doesnt exist, tabTarget cant either
     if (!vm.editingTarget) return tabTarget = null;
-    if (tabTarget && vm.editingTarget.id === tabTarget.id) return;
+    if (tabTarget && vm.editingTarget.id === tabTarget.id && !hasCommentChanged()) return;
     if (tabTarget) saveTabs();
     while (tabs.length) tabs.shift();
     while (tabScroller.children.length > 1) 
