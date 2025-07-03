@@ -487,6 +487,8 @@ export default async function ({ addon, msg, console }) {
           if (!block.mutation?.blockId) continue;
           const oldId = block.id;
           const newId = block.id = block.mutation.blockId;
+          const scriptIdx = tabTarget.blocks._scripts.indexOf(oldId);
+          if (scriptIdx !== -1) tabTarget.blocks._scripts[scriptIdx] = newId;
           delete tabTarget.blocks._blocks[blockId];
           tabTarget.blocks._blocks[newId] = block;
           const next = tabTarget.blocks.getBlock(block.next);
