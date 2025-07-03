@@ -111,8 +111,7 @@ export default async function ({ addon, msg, console }) {
         if (hoveredTab === -1) break;
         const blocks = vm.editingTarget.blocks.XMLToBlock(e);
         for (const block of blocks) {
-          const oldId = block.id;
-          const newId = block.id = uid();
+          block.id = uid();
           if (block.topLevel) tabs[hoveredTab].scripts.push(block.id);
         }
       }
@@ -340,22 +339,6 @@ export default async function ({ addon, msg, console }) {
   function scriptsHasBlock(scripts, block) {
     const top = vm.editingTarget.blocks.getTopLevelScript(block);
     return scripts.includes(top);
-  }
-  function copyScript(id, blocks) {
-    let block;
-    do {
-      block = vm.editingTarget.blocks.getBlock(id);
-      if (!block) break;
-      blocks._blocks[id] = block;
-      if (block.topLevel && !blocks._scripts.includes(id))
-        blocks._scripts.push(id);
-      for (const name in block.inputs) {
-        copyScript(block.inputs[name].block, blocks);
-        copyScript(block.inputs[name].shadow, blocks);
-      }
-      id = block.next;
-    } while (block.next);
-    vm.emitWorkspaceUpdate();
   }
   function selectTab(idx) {
     const { element: tab } = tabs[idx];
