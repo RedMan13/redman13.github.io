@@ -110,6 +110,7 @@ export default async function ({ addon, msg, console }) {
       dragging = false;
       if (hoveredTab === -1) break;
       const blocks = vm.editingTarget.blocks.XMLToBlock(e);
+      const moveNotCopy = addon.settings.get('moveOnDrag');
       for (const block of blocks) {
         const oldId = block.id;
         const newId = block.id = uid();
@@ -124,8 +125,10 @@ export default async function ({ addon, msg, console }) {
           }
         });
         tabTarget.blocks.createBlock(block);
+        if (moveNotCopy) tabTarget.blocks.deleteBlock(oldId, true);
         if (block.topLevel) tabs[hoveredTab].scripts.push(newId);
       }
+      if (moveNotCopy) selectTab(hoveredTab);
     }
   }
   const workspace = Blockly.getMainWorkspace();
