@@ -481,7 +481,7 @@ export default async function ({ addon, msg, console }) {
         const savedTabs = JSON.parse(comment.text.slice(commentId.length));
         if (!savedTabs?.length) throw new Error('No saved tabs');
         const scripts = [...tabTarget.blocks._scripts];
-        const blocks = Object.values(tabTarget.blocks);
+        const blocks = Object.values(tabTarget.blocks._blocks);
         // despite this normally acting on script heads, still made this to handle any case where there are parents
         for (const blockId of blocks) {
           const block = tabTarget.blocks._blocks[blockId];
