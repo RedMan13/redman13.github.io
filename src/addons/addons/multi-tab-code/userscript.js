@@ -522,7 +522,7 @@ export default async function ({ addon, msg, console }) {
       .filter(tab => tab.scripts.length > 0)
       .map((tab, idx) => {
         for (const script of tab.scripts) {
-          tabTarget.blocks._blocks[script].mutation ??= {};
+          tabTarget.blocks._blocks[script].mutation ??= { children: [] };
           tabTarget.blocks._blocks[script].mutation.blockId = script;
         }
         return {
