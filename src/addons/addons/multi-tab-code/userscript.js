@@ -124,9 +124,6 @@ export default async function ({ addon, msg, console }) {
   const vmSaveJSON = vm.toJSON;
   vm.toJSON = function(optTargetId, serializationOptions) {
     saveTabs();
-    serializationOptions ??= {};
-    // id compression breaks comment loading
-    serializationOptions.allowOptimization = false;
     return vmSaveJSON.call(this, optTargetId, serializationOptions);
   }
   vm.runtime._updateGlows = function(optExtraThreads) {
@@ -462,21 +459,73 @@ export default async function ({ addon, msg, console }) {
     tabScroller.style.left = `-${scroll}px`;
   }
   function loadTabs() {
-    for (const comment of Object.values(tabTarget.comments))
-      if (comment.text.startsWith(commentId))
-        return JSON.parse(comment.text.slice(commentId.length));
+    for (const comment of Object.values(tabTarget.comments)) {
+      if (comment.text.startsWith(commentId)) {
+        const savedTabs = JSON.parse(comment.text.slice(commentId.length));
+        if (!savedTabs?.length) throw new Error('No saved tabs');
+        const scripts = [...tabTarget.blocks._scripts];
+        const blocks = Object.values(tabTarget.blocks);
+        // despite this normally acting on script heads, still made this to handle any case where there are parents
+        for (const blockId of blocks) {
+          const block = tabTarget.blocks._blocks[blockId];
+          if (!block.mutation?.blockId) continue;
+          const oldId = block.id;
+          const newId = block.id = block.mutation.blockId;
+          delete tabTarget.blocks._blocks[blockId];
+          tabTarget.blocks._blocks[newId] = block;
+          const next = tabTarget.blocks.getBlock(block.next);
+          if (next) next.parent = newId;
+          const parent = tabTarget.blocks.getBlock(block.parent);
+          if (parent) {
+            if (parent.next === oldId) parent.next = newId;
+            else {
+              for (const name in parent.inputs) {
+                const input = parent.inputs[name];
+                if (input.block === oldId) input.block = newId;
+                if (input.shadow === oldId) input.shadow = newId;
+              }
+            }
+          }
+          for (const name in block.inputs) {
+            const input = block.inputs[name];
+            const oblock = tabTarget.blocks.getBlock(input.block);
+            if (oblock) oblock.parent = newId;
+            const shadow = tabTarget.blocks.getBlock(input.shadow);
+            if (shadow) shadow.parent = newId;
+          }
+        }
+        for (const tabIdx in savedTabs) {
+          const tab = savedTabs[tabIdx];
+          for (const cid of tab.comments)
+            tabTarget.comments[cid].tab = tabIdx;
+          for (const script of tab.scripts) {
+            const idx = scripts.indexOf(script);
+            scripts.splice(idx, 1);
+          }
+          addTab(tab.selected, tab.name, tab.scripts);
+        }
+        for (const script of scripts)
+          tabs[selectedTab].scripts.push(script);
+      }
+    }
   }
   function saveTabs() {
     const serial = tabs
       .filter(tab => tab.scripts.length > 0)
-      .map((tab, idx) => ({
-        name: tab.name,
-        scripts: tab.scripts,
-        selected: selectedTab === idx,
-        comments: Object.values(tabTarget.comments)
-          .filter(c => !c.text.startsWith(commentId) && c.tab == idx)
-          .map(c => c.id)
-      }));
+      .map((tab, idx) => {
+        for (const script of tab.scripts) {
+          tabTarget.blocks._blocks[script].mutation ??= {};
+          tabTarget.blocks._blocks[script].mutation.blockId = script;
+        }
+        return {
+          name: tab.name,
+          scripts: tab.scripts,
+          selected: selectedTab === idx,
+          comments: Object.values(tabTarget.comments)
+            .filter(c => !c.text.startsWith(commentId) && c.tab == idx)
+            .map(c => c.id)
+        }
+      });
     for (const comment of Object.values(tabTarget.comments))
       if (comment.text.startsWith(commentId))
         return comment.text = commentId + JSON.stringify(serial);
@@ -493,21 +542,7 @@ export default async function ({ addon, msg, console }) {
       tabScroller.children[0].remove();
     tabTarget = vm.editingTarget;
     try {
-      const savedTabs = loadTabs();
-      if (!savedTabs?.length) throw new Error('No saved tabs');
-      const scripts = [...tabTarget.blocks._scripts];
-      for (const tabIdx in savedTabs) {
-        const tab = savedTabs[tabIdx];
-        for (const cid of tab.comments)
-          tabTarget.comments[cid].tab = tabIdx;
-        for (const script of tab.scripts) {
-          const idx = scripts.indexOf(script);
-          scripts.splice(idx, 1);
-        }
-        addTab(tab.selected, tab.name, tab.scripts);
-      }
-      for (const script of scripts)
-        tabs[selectedTab].scripts.push(script);
+      loadTabs();
       vm.emitWorkspaceUpdate();
     } catch (err) {
       if (err.message !== 'No saved tabs')
