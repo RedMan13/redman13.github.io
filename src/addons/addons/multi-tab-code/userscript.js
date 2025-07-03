@@ -123,6 +123,7 @@ export default async function ({ addon, msg, console }) {
             if (input.shadow === oldId) input.shadow = newId;
           }
         });
+        tabTarget.blocks.createBlock(block);
         if (block.topLevel) tabs[hoveredTab].scripts.push(newId);
       }
     }
