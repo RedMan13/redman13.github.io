@@ -176,6 +176,12 @@ export default async function ({ addon, msg, console }) {
     }
     this._scriptGlowsPreviousFrame = finalScriptGlows;
   }
+  const oldDuplicate = RenderedTarget.prototype.duplicate;
+  RenderedTarget.prototype.duplicate = function() {
+    // !!! this may have issues in the future as duplication creates new ids
+    saveTabs();
+    return oldDuplicate.call(this);
+  }
   RenderedTarget.prototype.createComment = function(id, blockId, text, x, y, width, height, minimized) {
     if (!this.comments.hasOwnProperty(id)) {
       const newComment = new Comment(id, text, x, y, width, height, minimized);
