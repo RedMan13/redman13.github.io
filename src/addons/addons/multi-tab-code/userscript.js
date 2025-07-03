@@ -125,7 +125,13 @@ export default async function ({ addon, msg, console }) {
           }
         });
         tabTarget.blocks.createBlock(block);
-        if (moveNotCopy) tabTarget.blocks.deleteBlock(oldId, true);
+        if (moveNotCopy) {
+          tabTarget.blocks.deleteBlock(oldId, true);
+          if (tabs[selectedTab].scripts.includes(oldId)) {
+            const idx = tabs[selectedTab].scripts.indexOf(oldId);
+            tabs[selectedTab].scripts.splice(idx, 1);
+          }
+        }
         if (block.topLevel) tabs[hoveredTab].scripts.push(newId);
       }
       if (moveNotCopy) selectTab(hoveredTab);
