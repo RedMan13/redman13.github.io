@@ -61,6 +61,7 @@ import _disable_paste_offset from "../addons/disable-paste-offset/_manifest_entr
 import _block_duplicate from "../addons/block-duplicate/_manifest_entry.js";
 import _swap_local_global from "../addons/swap-local-global/_manifest_entry.js";
 import _toolbox_full_blocks_on_hover from "../addons/toolbox-full-blocks-on-hover/_manifest_entry.js";
+import _toolbox_category_drag from "../addons/toolbox-category-drag/_manifest_entry.js";
 import _editor_comment_previews from "../addons/editor-comment-previews/_manifest_entry.js";
 import _columns from "../addons/columns/_manifest_entry.js";
 import _number_pad from "../addons/number-pad/_manifest_entry.js";
@@ -73,6 +74,7 @@ import _tw_remove_backpack from "../addons/tw-remove-backpack/_manifest_entry.js
 import _tw_disable_cloud_variables from "../addons/tw-disable-cloud-variables/_manifest_entry.js";
 import _multi_tab_code from "../addons/multi-tab-code/_manifest_entry.js";
 import _editor_animations from "../addons/editor-animations/_manifest_entry.js";
+import _reorder_custom_inputs from "../addons/reorder-custom-inputs/_manifest_entry.js";
 
 export default {
   "cat-blocks": _cat_blocks,
@@ -136,6 +138,7 @@ export default {
   "block-duplicate": _block_duplicate,
   "swap-local-global": _swap_local_global,
   "toolbox-full-blocks-on-hover": _toolbox_full_blocks_on_hover,
+  "toolbox-category-drag": _toolbox_category_drag,
   "editor-comment-previews": _editor_comment_previews,
   "columns": _columns,
   "number-pad": _number_pad,
@@ -150,4 +153,5 @@ export default {
   "waveform-chunk-size": _waveform_chunk_size,
   "multi-tab-code": _multi_tab_code,
   "editor-animations": _editor_animations,
+  "reorder-custom-inputs": _reorder_custom_inputs,
 };

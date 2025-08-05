@@ -7,6 +7,33 @@ export default async function ({ addon, console }) {
 
     const { GRID_UNIT } = BlockSvg;
 
+    function scalePathXY(path, scaleX, scaleY) {
+      const util = BlockSvg.CUSTOM_NOTCH_UTIL;
+      const tokens = util.path2TokenList(path);
+      const result = [];
+      let i = 0;
+      while (i < tokens.length) {
+        const cmd = tokens[i++];
+        result.push(cmd);
+
+        const expected = util.supportedCommands[cmd];
+        const xIndexes = util.commandXpos[cmd] || [];
+
+        while (i + expected <= tokens.length && !/^[a-z]$/i.test(tokens[i])) {
+          for (let j = 0; j < expected; j++) {
+            let val = parseFloat(tokens[i + j]);
+            if (isNaN(val)) throw new Error(`Invalid number '${tokens[i + j]}'`);
+
+            if (xIndexes.includes(j)) val *= scaleX;
+            else val *= scaleY;
+            result.push(+val.toFixed(6));
+          }
+          i += expected;
+        }
+      }
+      return result.join(' ');
+    }
+
     function updateAllBlocks() {
       const workspace = Blockly.getMainWorkspace();
       if (workspace) {
@@ -64,25 +91,18 @@ export default async function ({ addon, console }) {
         `l ${-4 * multiplier * notchSize} ${-4 * multiplier * notchSize} ` +
         `c -1 ${-1 * notchSize} -2 ${-2 * notchSize} -4 ${-2 * notchSize} `
 
-      BlockSvg.NOTCH_SWITCH_PATH_LEFT =
-        `c 2 0 3 ${1 * notchSize} 4 ${2 * notchSize} ` +
-        `l ${4 * multiplier * notchSize} ${4 * multiplier * notchSize} ` +
-        `c 1 ${1 * notchSize} 2 ${2 * notchSize} 4 ${2 * notchSize} ` +
-        `c ${4 * (multiplier - 0.5)} 0 ${8 * (multiplier - 0.5)} ${-8 * (multiplier - 0.5) * notchSize} ${12 * (multiplier - 0.5)} ${-8 * (multiplier - 0.5) * notchSize} ` +
-        `c ${4 * (multiplier - 0.5)} 0 ${8 * (multiplier - 0.5)} ${8 * (multiplier - 0.5) * notchSize} ${12 * (multiplier - 0.5)} ${8 * (multiplier - 0.5) * notchSize} ` +
-        `c 2 0 3 ${-1 * notchSize} 4 ${-2 * notchSize} ` +
-        `l ${4 * multiplier * notchSize} ${-4 * multiplier * notchSize} ` +
-        `c 1 ${-1 * notchSize} 2 ${-2 * notchSize} 4 ${-2 * notchSize} `
-      BlockSvg.NOTCH_SWITCH_PATH_RIGHT =
-        `h ${(-4 * (cornerSize - 1) - 5 * (1 - notchSize))} ` +
-        `c -2 0 -3 ${1 * notchSize} -4 ${2 * notchSize} ` +
-        `l ${-4 * multiplier * notchSize} ${4 * multiplier * notchSize} ` +
-        `c -1 ${1 * notchSize} -2 ${2 * notchSize} -4 ${2 * notchSize} ` +
-        `c ${-4 * (multiplier - 0.5)} 0 ${-8 * (multiplier - 0.5)} ${-8 * (multiplier - 0.5) * notchSize} ${-12 * (multiplier - 0.5)} ${-8 * (multiplier - 0.5) * notchSize} ` +
-        `c ${-4 * (multiplier - 0.5)} 0 ${-8 * (multiplier - 0.5)} ${8 * (multiplier - 0.5) * notchSize} ${-12 * (multiplier - 0.5)} ${8 * (multiplier - 0.5) * notchSize} ` +
-        `c -2 0 -3 ${-1 * notchSize} -4 ${-2 * notchSize} ` +
-        `l ${-4 * multiplier * notchSize} ${-4 * multiplier * notchSize} ` +
-        `c -1 ${-1 * notchSize} -2 ${-2 * notchSize} -4 ${-2 * notchSize} `
+      /* Custom Notch API Support */
+      const adjustedNotchSize = (multiplier > 1 ? multiplier - 0.05 :
+          multiplier < 1 ? multiplier + 0.05 : multiplier) + ((cornerSize - 1) / 10);
+      BlockSvg.CUSTOM_NOTCHES.forEach((notch) => {
+        if (!notch.ogLeft) notch.ogLeft = notch.left;
+        if (!notch.ogRight) notch.ogRight = notch.right;
+        notch.left = scalePathXY(notch.ogLeft, adjustedNotchSize, notchSize);
+        notch.right = scalePathXY(notch.ogRight, adjustedNotchSize, notchSize);
+      });
+
+      /* Custom Shape API Support */
+      // TODO here...
 
       BlockSvg.INPUT_SHAPE_HEXAGONAL =
         "M " +
@@ -112,24 +132,24 @@ export default async function ({ addon, console }) {
       BlockSvg.INPUT_SHAPE_HEXAGONAL_WIDTH = 12 * GRID_UNIT * multiplier;
       BlockSvg.INPUT_SHAPE_ROUND =
         "M " +
-        4 * GRID_UNIT +
+        4 * GRID_UNIT * multiplier +
         ",0" +
         " h " +
-        4 * GRID_UNIT +
+        4 * GRID_UNIT * multiplier +
         " a " +
-        4 * GRID_UNIT +
+        4 * GRID_UNIT * multiplier +
         " " +
-        4 * GRID_UNIT +
+        4 * GRID_UNIT * multiplier +
         " 0 0 1 0 " +
-        8 * GRID_UNIT +
+        8 * GRID_UNIT * multiplier +
         " h " +
-        -4 * GRID_UNIT +
+        -4 * GRID_UNIT * multiplier +
         " a " +
-        4 * GRID_UNIT +
+        4 * GRID_UNIT * multiplier +
         " " +
-        4 * GRID_UNIT +
+        4 * GRID_UNIT * multiplier +
         " 0 0 1 0 -" +
-        8 * GRID_UNIT +
+        8 * GRID_UNIT * multiplier +
         " z";
       BlockSvg.INPUT_SHAPE_ROUND_WIDTH = 12 * GRID_UNIT * multiplier;
       BlockSvg.INPUT_SHAPE_HEIGHT = 8 * GRID_UNIT * multiplier;

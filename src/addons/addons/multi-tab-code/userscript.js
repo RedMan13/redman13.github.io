@@ -474,8 +474,8 @@ export default async function ({ addon, msg, console }) {
     selectStartScroll = scroll;
     selectStartX = e.x;
   }
-  document.onmouseup = () => scrollSelected = false;
-  document.onmousemove = e => {
+  document.addEventListener('mouseup', () => scrollSelected = false);
+  document.addEventListener('mousemove', e => {
     if (!scrollSelected) return;
     const bodySize = tabScroller.getBoundingClientRect();
     const wrapperSize = tabWrapper.getBoundingClientRect();
@@ -483,7 +483,7 @@ export default async function ({ addon, msg, console }) {
     scroll = Math.max(Math.min((e.x - selectStartX) + selectStartScroll, diff), 0);
     scrollBar.style.left = `${scroll}px`;
     tabScroller.style.left = `-${scroll}px`;
-  }
+  });
   function loadTabs() {
     for (const comment of Object.values(tabTarget.comments)) {
       if (comment.text.startsWith(commentId)) {
@@ -544,6 +544,10 @@ export default async function ({ addon, msg, console }) {
       .filter(tab => tab.scripts.length > 0)
       .map((tab, idx) => {
         for (const script of tab.scripts) {
+          if (!tabTarget.blocks._blocks[script]) {
+            console.warn('Ignoring none existent block', script, 'while saving for tab', selectedTab);
+            continue;
+          }
           tabTarget.blocks._blocks[script].mutation ??= { children: [] };
           tabTarget.blocks._blocks[script].mutation.blockId = script;
         }
@@ -573,6 +577,7 @@ export default async function ({ addon, msg, console }) {
     if (!vm.editingTarget) return tabTarget = null;
     if (tabTarget && vm.editingTarget.id === tabTarget.id && !hasCommentChanged()) return;
     if (tabTarget) saveTabs();
+    selectedTab = -1;
     while (tabs.length) tabs.shift();
     while (tabScroller.children.length > 1) 
       tabScroller.children[0].remove();
@@ -584,6 +589,7 @@ export default async function ({ addon, msg, console }) {
         console.warn('Couldnt read the serialized tabs', err);
       addTab(true, null, vm.editingTarget.blocks._scripts);
     }
+    if (selectedTab < 0 || selectedTab >= tabs.length) selectTab(0);
   });
 
   const keysPressed = {};
