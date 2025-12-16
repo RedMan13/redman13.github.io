@@ -1,5 +1,6 @@
 import JSZip from 'jszip';
 import uid from './uid';
+import { stringify, parse } from './json-circular';
 
 /**
  * String.prototype.indexOf, but it returns NaN not -1 on failure
@@ -59,7 +60,7 @@ const push = (type, message, trace) => {
         trace
     });
 };
-const _parseFirefoxStack = stack => stack.split('\n')
+const _parseFirefoxStack = stack => stack.split('\n').slice(1)
     .map(line => {
         const at = line.indexOf('@');
         const secondCol = line.lastIndexOf(':');
@@ -90,7 +91,7 @@ const _parseFirefoxStack = stack => stack.split('\n')
             origin
         };
     });
-const _parseChromeStack = stack => stack.split('\n').slice(1)
+const _parseChromeStack = stack => stack.split('\n').slice(2)
     .map(line => {
         // we have no use for the human readable fluff
         line = line.slice(7);
@@ -147,7 +148,7 @@ const parseStack = (stack, url, line, column) => {
 };
 const downloadLogs = async () => {
     const files = new JSZip();
-    files.file('logs.json', JSON.stringify(consoleLogs));
+    files.file('logs.json', stringify(consoleLogs));
     const index = {};
     // get files
     // sadly, this may just dead ass fail to get files due to blob lifecycle
@@ -193,27 +194,27 @@ const downloadLogs = async () => {
 window.downloadLogs = downloadLogs;
 
 window.addEventListener('error', e =>
-    push('error', e.message, parseStack(e.error.stack, e.filename, e.lineno, e.colno)));
-window.addEventListener('unhandledrejection', e => push('promiseError', e.reason, []));
+    push('error', String(e.message), parseStack(`\n${e.error.stack}`, e.filename, e.lineno, e.colno)));
+window.addEventListener('unhandledrejection', e => push('promiseError', String(e.reason), []));
 class StackTrace extends Error {
     constructor() {
         super('');
-        if (this.stack.split('\n', 2)[0].includes('@'))
+        if (this.stack.split('\n', 2)[0].includes('@')) {
             this.stack = this.stack
                 .split('\n')
                 .slice(2, 3)
                 .join('\n');
-        else {
+        } else {
             // chrome is weird ngl
             const lines = this.stack
                 .split('\n')
                 .slice(0, 3);
-            lines.splice(1, 2);
+            lines.splice(1, 1);
             this.stack = lines.join('\n');
         }
     }
 }
-if (!String(window.location.href).startsWith(`http://localhost:`)) {
+if (!(new URLSearchParams(location.search).has('nologcapture')) && (!String(window.location.href).startsWith(`http://localhost:`) || new URLSearchParams(location.search).has('nolivetests'))) {
     for (const name of ['log', 'warn', 'error', 'debug', 'info']) {
         const item = window.console[name];
         window.console[name] = (...args) => {

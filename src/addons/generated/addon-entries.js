@@ -77,4 +77,9 @@ export default {
   "multi-tab-code": () => import(/* webpackChunkName: "addon-default-entry" */ "../addons/multi-tab-code/_runtime_entry.js"),
   "editor-animations": () => import(/* webpackChunkName: "addon-default-entry" */ "../addons/editor-animations/_runtime_entry.js"),
   "reorder-custom-inputs": () => import(/* webpackChunkName: "addon-default-entry" */ "../addons/reorder-custom-inputs/_runtime_entry.js"),
+  "sounds-newgrounds-button": () => import(/* webpackChunkName: "addon-default-entry" */ "../addons/sounds-newgrounds-button/_runtime_entry.js"),
+  "paint-reshape-tweaks": () => import(/* webpackChunkName: "addon-default-entry" */ "../addons/paint-reshape-tweaks/_runtime_entry.js"),
+  "editor-tweaks": () => import(/* webpackChunkName: "addon-default-entry" */ "../addons/editor-tweaks/_runtime_entry.js"),
+  "copy-reporter": () => import(/* webpackChunkName: "addon-default-entry" */ "../addons/copy-reporter/_runtime_entry.js"),
+  "block-pins": () => import(/* webpackChunkName: "addon-default-entry" */ "../addons/block-pins/_runtime_entry.js"),
 };
