@@ -2,7 +2,6 @@ on:
   workflow_dispatch:
   repository_dispatch:
   push:
-    branches: ["develop"]
 
 permissions:
   contents: read
