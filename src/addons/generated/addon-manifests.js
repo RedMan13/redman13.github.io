@@ -2,7 +2,6 @@
 import _cat_blocks from "../addons/cat-blocks/_manifest_entry.js";
 import _editor_devtools from "../addons/editor-devtools/_manifest_entry.js";
 import _find_bar from "../addons/find-bar/_manifest_entry.js";
-import _middle_click_popup from "../addons/middle-click-popup/_manifest_entry.js";
 import _editor_block_chomping from "../addons/editor-block-chomping/_manifest_entry.js";
 import _paint_gradient_maker from "../addons/paint-gradient-maker/_manifest_entry.js";
 import _paint_tool_panel from "../addons/paint-tool-panel/_manifest_entry.js";
@@ -85,7 +84,6 @@ export default {
   "cat-blocks": _cat_blocks,
   "editor-devtools": _editor_devtools,
   "find-bar": _find_bar,
-  "middle-click-popup": _middle_click_popup,
   "editor-block-chomping": _editor_block_chomping,
   "paint-gradient-maker": _paint_gradient_maker,
   "paint-tool-panel": _paint_tool_panel,

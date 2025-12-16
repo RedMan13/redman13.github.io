@@ -3,7 +3,6 @@ export default {
   "cat-blocks": () => import(/* webpackChunkName: "addon-entry-cat-blocks" */ "../addons/cat-blocks/_runtime_entry.js"),
   "editor-devtools": () => import(/* webpackChunkName: "addon-default-entry" */ "../addons/editor-devtools/_runtime_entry.js"),
   "find-bar": () => import(/* webpackChunkName: "addon-default-entry" */ "../addons/find-bar/_runtime_entry.js"),
-  "middle-click-popup": () => import(/* webpackChunkName: "addon-default-entry" */ "../addons/middle-click-popup/_runtime_entry.js"),
   "editor-block-chomping": () => import(/* webpackChunkName: "addon-default-entry" */ "../addons/editor-block-chomping/_runtime_entry.js"),
   "paint-gradient-maker": () => import(/* webpackChunkName: "addon-default-entry" */ "../addons/paint-gradient-maker/_runtime_entry.js"),
   "paint-tool-panel": () => import(/* webpackChunkName: "addon-default-entry" */ "../addons/paint-tool-panel/_runtime_entry.js"),
